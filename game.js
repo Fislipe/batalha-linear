@@ -56,7 +56,7 @@ function gerarNovaBase() {
     logar(`Nova base definida: v1=(${v1.x},${v1.y}) e v2=(${v2.x},${v2.y})`, 'text-blue-400');
 }
 
-// Posiciona navios ocultos no modo Solo usando Transformação Linear
+// Posiciona navios ocultos usando Transformação Linear
 function posicionarFrotaBot() {
     frotaInimiga = [];
     // Navio 1 (Tamanho 3)
@@ -124,22 +124,57 @@ function processarImpactoLocal(alvo) {
     }
 }
 
-// --- Configuração Multiplayer P2P (PeerJS) ---
+// --- Configuração Multiplayer P2P (Com STUN + TURN para atravessar 4G/Firewalls) ---
 function iniciarPeerJS() {
-    peer = new Peer();
+    peer = new Peer({
+        debug: 2,
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ]
+        }
+    });
+
     peer.on('open', (id) => {
         document.getElementById('my-peer-id').innerText = id;
+        logar('Pronto para conectar! Envie seu ID ou cole o do amigo.', 'text-gray-400');
     });
 
     peer.on('connection', (conexaoRecebida) => {
+        logar('Recebendo conexão do adversário...', 'text-yellow-400');
         conn = conexaoRecebida;
         configurarEventosConexao();
+    });
+
+    peer.on('error', (err) => {
+        logar(`Erro P2P [${err.type}]: ${err.message}`, 'text-red-400');
     });
 }
 
 function conectarAdversario() {
     const enemyId = document.getElementById('enemy-peer-id').value.trim();
-    if (!enemyId) return;
+    if (!enemyId) {
+        logar('Cole o ID do adversário antes de clicar em Conectar.', 'text-red-400');
+        return;
+    }
+
+    if (enemyId === peer.id) {
+        logar('Você colou o seu próprio ID! Cole o ID do seu amigo.', 'text-red-400');
+        return;
+    }
+
+    logar(`Conectando a ${enemyId.substring(0, 8)}...`, 'text-yellow-400');
     conn = peer.connect(enemyId);
     configurarEventosConexao();
 }
@@ -154,13 +189,26 @@ function configurarEventosConexao() {
     conn.on('data', (dados) => {
         if (dados.tipo === 'TIRO') {
             // Verifica na sua frota e devolve o resultado
-            const hit = frotaInimiga.some(n => n.x === dados.vetor.x && n.y === dados.vetor.y);
+            const navioAtingido = frotaInimiga.find(n => n.x === dados.vetor.x && n.y === dados.vetor.y);
+            let hit = false;
             let dica = '';
-            if (!hit) {
-                dica = MathEngine.calcularAnguloRadar(dados.vetor, frotaInimiga[0]);
+
+            if (navioAtingido) {
+                navioAtingido.atingido = true;
+                hit = true;
+            } else {
+                const alvosRestantes = frotaInimiga.filter(n => !n.atingido);
+                if (alvosRestantes.length > 0) {
+                    dica = MathEngine.calcularAnguloRadar(dados.vetor, alvosRestantes[0]);
+                }
             }
+
             conn.send({ tipo: 'RESULTADO', vetor: dados.vetor, hit: hit, dica: dica });
             logar(`Inimigo atirou em (${dados.vetor.x}, ${dados.vetor.y}) -> ${hit ? 'ACERTOU!' : 'Errou'}`, 'text-orange-400');
+
+            if (frotaInimiga.every(n => n.atingido)) {
+                logar('DERROTA! O adversário afundou toda a sua frota!', 'text-red-500 font-bold text-sm');
+            }
         } else if (dados.tipo === 'RESULTADO') {
             const celula = document.getElementById(`cell_${dados.vetor.x}_${dados.vetor.y}`);
             if (dados.hit) {
@@ -172,6 +220,12 @@ function configurarEventosConexao() {
                 logar(`Água em (${dados.vetor.x}, ${dados.vetor.y}). ${dados.dica}`, 'text-purple-300');
             }
         }
+    });
+
+    conn.on('close', () => {
+        document.getElementById('status-conexao').innerText = 'Status: Desconectado (Modo Solo)';
+        document.getElementById('status-conexao').classList.replace('text-[#43b581]', 'text-gray-400');
+        logar('Conexão com o adversário encerrada.', 'text-red-400');
     });
 }
 
