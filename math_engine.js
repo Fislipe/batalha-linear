@@ -21,7 +21,6 @@ const MathEngine = {
 
     // 4. Radar via Ângulo entre Vetores: cos(theta) = (u . v) / (|u| * |v|)
     calcularAnguloRadar(tiro, alvoMaisProximo) {
-        // Se o tiro ou alvo estiver na origem (0,0), evita divisão por zero
         if ((tiro.x === 0 && tiro.y === 0) || (alvoMaisProximo.x === 0 && alvoMaisProximo.y === 0)) {
             return "Sinal interferido na origem (0,0)!";
         }
@@ -30,7 +29,6 @@ const MathEngine = {
         const modTiro = this.modulo(tiro);
         const modAlvo = this.modulo(alvoMaisProximo);
 
-        // Limita o cosseno entre -1 e 1 para evitar erros de ponto flutuante
         let cosTheta = dot / (modTiro * modAlvo);
         cosTheta = Math.max(-1, Math.min(1, cosTheta));
 

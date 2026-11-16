@@ -124,7 +124,7 @@ function processarImpactoLocal(alvo) {
     }
 }
 
-// --- Configuração Multiplayer P2P (Com STUN + TURN para atravessar 4G/Firewalls) ---
+// --- Configuração Multiplayer P2P (Forçando JSON e múltiplos ICE servers) ---
 function iniciarPeerJS() {
     peer = new Peer({
         debug: 2,
@@ -132,13 +132,15 @@ function iniciarPeerJS() {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' },
                 {
                     urls: 'turn:openrelay.metered.ca:80',
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
                 },
                 {
-                    urls: 'turn:openrelay.metered.ca:443',
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
                 }
@@ -175,7 +177,8 @@ function conectarAdversario() {
     }
 
     logar(`Conectando a ${enemyId.substring(0, 8)}...`, 'text-yellow-400');
-    conn = peer.connect(enemyId);
+    // serialization: 'json' evita travamentos do BinaryPack em redes restritas
+    conn = peer.connect(enemyId, { serialization: 'json', reliable: true });
     configurarEventosConexao();
 }
 
