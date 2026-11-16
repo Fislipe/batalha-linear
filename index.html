@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batalha Naval Algébrica - R²</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body class="bg-[#202225] text-gray-200 font-sans h-screen flex overflow-hidden">
 
@@ -15,22 +15,19 @@
             <h1 class="text-xl font-bold text-[#43b581] mb-1">Batalha Naval em ℝ²</h1>
             <p class="text-xs text-gray-400 mb-4">Dispare usando Combinações Lineares</p>
 
-            <!-- Conexão P2P (PeerJS) -->
+            <!-- Sala Multiplayer via WebSocket -->
             <div class="bg-[#202225] p-3 rounded-lg mb-4 border border-gray-700">
-                <p class="text-xs font-semibold text-gray-400 uppercase mb-1">Conexão P2P</p>
-                <div class="flex items-center justify-between text-xs mb-2">
-                    <span>Seu ID:</span>
-                    <span id="my-peer-id" class="font-mono text-yellow-400 select-all">Gerando...</span>
-                </div>
+                <p class="text-xs font-semibold text-gray-400 uppercase mb-1">Sala Multiplayer</p>
+                <p class="text-[11px] text-gray-400 mb-2">Digite o mesmo código de sala nos dois PCs:</p>
                 <div class="flex gap-2">
-                    <input type="text" id="enemy-peer-id" placeholder="ID do Adversário" 
+                    <input type="text" id="room-code" placeholder="Ex: ifc2026" 
                            class="w-full bg-[#36393f] text-sm px-2 py-1 rounded border border-gray-600 focus:outline-none focus:border-[#43b581]">
-                    <button onclick="conectarAdversario()" 
+                    <button onclick="entrarNaSala()" 
                             class="bg-[#43b581] hover:bg-green-600 text-white text-xs font-bold px-3 py-1 rounded transition">
-                        Conectar
+                        Entrar
                     </button>
                 </div>
-                <p id="status-conexao" class="text-xs text-gray-400 mt-2">Status: Aguardando oponente (Modo Solo ativo)</p>
+                <p id="status-conexao" class="text-xs text-gray-400 mt-2">Status: Aguardando sala (Modo Solo ativo)</p>
             </div>
 
             <!-- Painel de Base Atual -->
@@ -40,7 +37,7 @@
                     <button onclick="gerarNovaBase()" class="text-xs text-blue-400 hover:underline">Trocar Base</button>
                 </div>
                 <p class="text-xs text-gray-300 mb-3">
-                    Calcule $a_1$ e $a_2$ para atingir $(x, y)$ através de:<br>
+                    Calcule a₁ e a₂ para atingir (x, y) através de:<br>
                     <code class="text-[#43b581] font-mono">Tiro = a₁·v₁ + a₂·v₂</code>
                 </p>
                 
