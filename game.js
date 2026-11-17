@@ -129,8 +129,19 @@ function gerarNovaBase() {
     ];
 
     const escolhida = basesLI[Math.floor(Math.random() * basesLI.length)];
-    v1 = escolhida.v1;
-    v2 = escolhida.v2;
+    definirBase(escolhida);
+}
+
+function usarBaseCanonica() {
+    definirBase({
+        v1: { x: 1, y: 0 },
+        v2: { x: 0, y: 1 }
+    });
+}
+
+function definirBase(base) {
+    v1 = base.v1;
+    v2 = base.v2;
 
     document.getElementById('display-v1').innerText = `(${v1.x}, ${v1.y})`;
     document.getElementById('display-v2').innerText = `(${v2.x}, ${v2.y})`;
@@ -174,12 +185,9 @@ function processarImpactoSolo(alvo) {
         }
     } else {
         celula.className = 'w-8 h-8 flex items-center justify-center text-[9px] font-mono text-blue-200 bg-blue-500/30 border border-blue-400 rounded-sm';
-        logar(`Água em (${alvo.x}, ${alvo.y}).`, 'text-blue-300');
-
         const alvosRestantes = frotaBot.filter(n => !n.atingido);
-        if (alvosRestantes.length > 0) {
-            logar(MathEngine.calcularAnguloRadar(alvo, alvosRestantes[0]), 'text-purple-300');
-        }
+        const dica = MathEngine.calcularAnguloRadar(alvo, alvosRestantes);
+        logar(`Água em (${alvo.x}, ${alvo.y}). ${dica}`, 'text-purple-300');
     }
 }
 
@@ -272,7 +280,7 @@ function entrarNaSala() {
                 }
                 const alvosRestantes = minhaFrota.filter(n => !n.atingido);
                 if (alvosRestantes.length > 0) {
-                    dica = MathEngine.calcularAnguloRadar(dados.vetor, alvosRestantes[0]);
+                    dica = MathEngine.calcularAnguloRadar(dados.vetor, alvosRestantes);
                 }
             }
 

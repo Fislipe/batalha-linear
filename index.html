@@ -52,7 +52,17 @@
             <div class="bg-[#36393f] p-3 rounded-lg mb-3 border border-gray-700">
                 <div class="flex justify-between items-center mb-1">
                     <h2 class="text-xs font-bold text-white uppercase">Base de Disparo</h2>
-                    <button onclick="gerarNovaBase()" class="text-xs text-blue-400 hover:underline">Trocar Base</button>
+                    <div role="group" aria-label="Selecionar base de disparo"
+                         class="inline-flex items-center gap-1 p-1 rounded-lg bg-[#202225] border border-gray-600 shadow-inner">
+                        <button onclick="gerarNovaBase()" title="Sortear uma base"
+                                class="px-3 py-1.5 rounded-md text-xs font-semibold text-blue-200 hover:text-white hover:bg-blue-600/40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            Aleatória
+                        </button>
+                        <button onclick="usarBaseCanonica()" title="Usar a base canônica"
+                                class="px-3 py-1.5 rounded-md text-xs font-semibold text-purple-200 hover:text-white hover:bg-purple-600/40 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            Canônica
+                        </button>
+                    </div>
                 </div>
                 <p class="text-[11px] text-gray-300 mb-2">
                     <code class="text-[#43b581] font-mono">Tiro = a₁·v₁ + a₂·v₂</code>

@@ -19,23 +19,24 @@ const MathEngine = {
         return Math.sqrt((v.x * v.x) + (v.y * v.y));
     },
 
-    // 4. Radar via Ângulo entre Vetores: cos(theta) = (u . v) / (|u| * |v|)
-    calcularAnguloRadar(tiro, alvoMaisProximo) {
-        if ((tiro.x === 0 && tiro.y === 0) || (alvoMaisProximo.x === 0 && alvoMaisProximo.y === 0)) {
-            return "Sinal interferido na origem (0,0)!";
+    // 4. Radar: direção do tiro até a parte de navio inimigo mais próxima
+    calcularAnguloRadar(tiro, alvosRestantes) {
+        if (alvosRestantes.length === 0) {
+            return "Nenhum navio inimigo restante no radar.";
         }
 
-        const dot = this.produtoEscalar(tiro, alvoMaisProximo);
-        const modTiro = this.modulo(tiro);
-        const modAlvo = this.modulo(alvoMaisProximo);
+        const alvoMaisProximo = alvosRestantes.reduce((maisProximo, alvo) => {
+            const distancia = (alvo.x - tiro.x) ** 2 + (alvo.y - tiro.y) ** 2;
+            const menorDistancia = (maisProximo.x - tiro.x) ** 2 + (maisProximo.y - tiro.y) ** 2;
+            return distancia < menorDistancia ? alvo : maisProximo;
+        });
 
-        let cosTheta = dot / (modTiro * modAlvo);
-        cosTheta = Math.max(-1, Math.min(1, cosTheta));
+        const dx = alvoMaisProximo.x - tiro.x;
+        const dy = alvoMaisProximo.y - tiro.y;
+        const radianos = Math.atan2(dx, dy);
+        const graus = (Math.round(radianos * (180 / Math.PI)) + 360) % 360;
 
-        const radianos = Math.acos(cosTheta);
-        const graus = Math.round(radianos * (180 / Math.PI));
-
-        return `Radar: O vetor do alvo mais próximo faz um ângulo de ${graus}° com o seu tiro.`;
+        return `O navio inimigo mais próximo está na direção de ${graus}° a partir do tiro (0° = acima, sentido horário).`;
     },
 
     // 5. Transformação Linear de Rotação (90 graus anti-horário): T(x,y) = (-y, x)
